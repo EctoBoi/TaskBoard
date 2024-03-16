@@ -7,8 +7,8 @@ namespace TaskBoard
 {
     public partial class Form1 : Form
     {
-        [DllImport("user32.dll")]
-        static extern short GetAsyncKeyState(Int32 vKey);
+        [LibraryImport("user32.dll")]
+        private static partial short GetAsyncKeyState(Int32 vKey);
         readonly int VK_HOME = 0x24;
 
         readonly int defaultUIScale = 100;
@@ -25,7 +25,7 @@ namespace TaskBoard
             CheckKeypressLoop();
         }
 
-        async void CheckKeypressLoop()
+        private async void CheckKeypressLoop()
         {
             while (true)
             {
@@ -54,7 +54,7 @@ namespace TaskBoard
 
                 if (taskList != null)
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     for (int i = 0; i < taskList.Length; i++)
                     {
                         sb.AppendLine(taskList[i].ToString());
@@ -137,21 +137,21 @@ namespace TaskBoard
 
         private static Bitmap ScreenshotTaskList(Int32 x, Int32 y, Int32 width, Int32 height)
         {
-            Bitmap captureBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            Bitmap captureBitmap = new(width, height, PixelFormat.Format32bppArgb);
 
-            Size size = new Size(width, height);
+            Size size = new(width, height);
             Graphics captureGraphics = Graphics.FromImage(captureBitmap);
             captureGraphics.CopyFromScreen(x, y, 0, 0, size, CopyPixelOperation.SourceCopy);
 
             //Returns fixed size capture of region
-            Bitmap resized = new Bitmap(captureBitmap, new Size(1256, 1612));
+            Bitmap resized = new(captureBitmap, new Size(1256, 1612));
 
             return resized;
         }
 
         private static string[] ReadImage(Bitmap bmp)
         {
-            TesseractEngine engine = new TesseractEngine("./tessdata", "eng", EngineMode.Default);
+            TesseractEngine engine = new("./tessdata", "eng", EngineMode.Default);
             Tesseract.Page page = engine.Process(bmp, PageSegMode.SparseText);
             ResultIterator iter = page.GetIterator();
 
@@ -191,7 +191,7 @@ namespace TaskBoard
 
             int notEmptyCount = 0;
 
-            TesseractEngine engine = new TesseractEngine("./tessdata", "eng", EngineMode.Default);
+            TesseractEngine engine = new("./tessdata", "eng", EngineMode.Default);
 
             for (int i = 0; i < 8; i++)
             {
@@ -215,7 +215,7 @@ namespace TaskBoard
                 return null;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void PostListBtn_Click(object sender, EventArgs e)
         {
             PostList();
         }
