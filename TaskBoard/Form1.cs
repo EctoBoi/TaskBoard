@@ -23,6 +23,8 @@ namespace TaskBoard
 
         int UIScale = defaultUIScale;
 
+        int reconnects = 0;
+
         SimpleTcpClient? client;
 
         private void Form1_Load(object sender, EventArgs e)
@@ -52,8 +54,7 @@ namespace TaskBoard
                 IPTxt.Enabled = false;
                 userTxt.Enabled = false;
                 PostListBtn.Enabled = true;
-                infoLbl.Text = "Server connected.";
-                statusLbl.Text = "Status: Connected";
+                infoLbl.Text = "Server connecting...";
                 if (client != null)
                     client.Send($"$user={userTxt.Text}");
                 else
@@ -69,7 +70,14 @@ namespace TaskBoard
                 IPTxt.Enabled = true;
                 userTxt.Enabled = true;
                 PostListBtn.Enabled = false;
-                infoLbl.Text = $"Server disconnected.";
+                infoLbl.Text = "Server disconnected.";
+                statusLbl.Text = "Status: Disconnected";
+                if (reconnects < 3)
+                {
+                    reconnects++;
+                    infoLbl.Text = $"Server disconnected.{Environment.NewLine}Reconnecting...({reconnects})";
+                    Task.Delay(1000).ContinueWith(t => Connect());
+                }
             });
         }
 
@@ -77,6 +85,7 @@ namespace TaskBoard
         {
             this.Invoke((MethodInvoker)delegate
             {
+                reconnects = 0;
                 infoLbl.Text = Encoding.UTF8.GetString(e.Data);
             });
         }
@@ -368,12 +377,7 @@ namespace TaskBoard
                 return null;
         }
 
-        private void PostListBtn_Click(object sender, EventArgs e)
-        {
-            PostList();
-        }
-
-        private void connectBtn_Click(object sender, EventArgs e)
+        private void Connect()
         {
             if (!string.IsNullOrEmpty(IPTxt.Text))
             {
@@ -388,13 +392,23 @@ namespace TaskBoard
                             client = CreateClient();
                             client.Connect();
                         }
-                        catch (Exception ex) { MessageBox.Show(ex.Message, "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                        catch (Exception ex) { infoLbl.Text = "Connection Error: " + ex.Message; }
                     }
                     else { MessageBox.Show("Username can't contain \"=\"!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
                 }
                 else { MessageBox.Show("Username empty!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
             }
             else { MessageBox.Show("Server IP empty!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        }
+
+       private void PostListBtn_Click(object sender, EventArgs e)
+        {
+            PostList();
+        }
+
+        private void connectBtn_Click(object sender, EventArgs e)
+        {
+            Connect();
         }
     }
 }

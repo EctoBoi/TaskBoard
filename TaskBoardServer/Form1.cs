@@ -39,9 +39,11 @@ namespace TaskBoardServer
 
         private void Events_ClientConnected(object? sender, ConnectionEventArgs e)
         {
-            users.Add(new User(e.IpPort));
-            UpdateUserList();
-            infoTxt.Text += $"{e.IpPort} connected.{Environment.NewLine}";
+            this.Invoke((MethodInvoker)delegate
+            {
+                users.Add(new User(e.IpPort));
+                infoTxt.Text += $"{e.IpPort} connected.{Environment.NewLine}";
+            });
         }
 
         private void Events_ClientDisconnected(object? sender, ConnectionEventArgs e)
@@ -75,8 +77,8 @@ namespace TaskBoardServer
                 {
                     string username = dataString.Split('=')[1];
                     users.Single(x => x.IpPort == e.IpPort).username = username;
-                    UpdateUserList();
                     infoTxt.Text += $"{e.IpPort}: Username is {username}{Environment.NewLine}";
+                    UpdateUserList();
                 }
             });
         }
@@ -85,17 +87,19 @@ namespace TaskBoardServer
         {
             userLst.Items.Clear();
             users.ForEach(x => userLst.Items.Add(x.IpPort + "=" + x.username));
+            SendTaskBoard();
         }
 
         private void SendTaskBoard()
         {
+            users = [.. users.OrderBy(o => o.username)];
             StringBuilder sb = new();
             foreach (User u in users)
             {
                 int hour;
-                if(u.lastListUpdate.Hour>12)
-                    hour = u.lastListUpdate.Hour-12;
-                else 
+                if (u.lastListUpdate.Hour > 12)
+                    hour = u.lastListUpdate.Hour - 12;
+                else
                     hour = u.lastListUpdate.Hour;
                 sb.AppendLine(u.username + " @ " + hour + ":" + u.lastListUpdate.Minute);
                 for (int i = 0; i < 8; i++)
