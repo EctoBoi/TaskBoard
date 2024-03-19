@@ -30,37 +30,31 @@ namespace TaskBoard
         /// </summary>
         private void InitializeComponent()
         {
-            mainDisplayLabel = new Label();
-            cBox = new System.Windows.Forms.TextBox();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            infoLbl = new Label();
             PostListBtn = new System.Windows.Forms.Button();
-            UIScaleLabel = new Label();
-            UIScaleInput = new NumericUpDown();
-            SetUIScaleBtn = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)UIScaleInput).BeginInit();
+            UIScaleLbl = new Label();
+            IPTxt = new System.Windows.Forms.TextBox();
+            label1 = new Label();
+            connectBtn = new System.Windows.Forms.Button();
+            statusLbl = new Label();
+            label3 = new Label();
+            userTxt = new System.Windows.Forms.TextBox();
             SuspendLayout();
             // 
-            // mainDisplayLabel
+            // infoLbl
             // 
-            mainDisplayLabel.BackColor = SystemColors.Window;
-            mainDisplayLabel.BorderStyle = BorderStyle.FixedSingle;
-            mainDisplayLabel.Location = new Point(12, 9);
-            mainDisplayLabel.Name = "mainDisplayLabel";
-            mainDisplayLabel.Size = new Size(776, 314);
-            mainDisplayLabel.TabIndex = 0;
-            mainDisplayLabel.Text = "mainDisplayLabel";
-            // 
-            // cBox
-            // 
-            cBox.Location = new Point(12, 337);
-            cBox.Multiline = true;
-            cBox.Name = "cBox";
-            cBox.Size = new Size(776, 79);
-            cBox.TabIndex = 1;
-            cBox.Text = "cBox";
+            infoLbl.BackColor = SystemColors.Window;
+            infoLbl.BorderStyle = BorderStyle.FixedSingle;
+            infoLbl.Location = new Point(12, 50);
+            infoLbl.Name = "infoLbl";
+            infoLbl.Size = new Size(776, 589);
+            infoLbl.TabIndex = 0;
             // 
             // PostListBtn
             // 
-            PostListBtn.Location = new Point(12, 422);
+            PostListBtn.Enabled = false;
+            PostListBtn.Location = new Point(12, 651);
             PostListBtn.Name = "PostListBtn";
             PostListBtn.Size = new Size(103, 23);
             PostListBtn.TabIndex = 2;
@@ -68,63 +62,102 @@ namespace TaskBoard
             PostListBtn.UseVisualStyleBackColor = true;
             PostListBtn.Click += PostListBtn_Click;
             // 
-            // UIScaleLabel
+            // UIScaleLbl
             // 
-            UIScaleLabel.AutoSize = true;
-            UIScaleLabel.Location = new Point(140, 426);
-            UIScaleLabel.Name = "UIScaleLabel";
-            UIScaleLabel.Size = new Size(48, 15);
-            UIScaleLabel.TabIndex = 4;
-            UIScaleLabel.Text = "UI Scale";
+            UIScaleLbl.AutoSize = true;
+            UIScaleLbl.Location = new Point(716, 655);
+            UIScaleLbl.Name = "UIScaleLbl";
+            UIScaleLbl.Size = new Size(72, 15);
+            UIScaleLbl.TabIndex = 3;
+            UIScaleLbl.Text = "UI Scale: 100";
             // 
-            // UIScaleInput
+            // IPTxt
             // 
-            UIScaleInput.Location = new Point(190, 422);
-            UIScaleInput.Minimum = new decimal(new int[] { 80, 0, 0, 0 });
-            UIScaleInput.Name = "UIScaleInput";
-            UIScaleInput.Size = new Size(48, 23);
-            UIScaleInput.TabIndex = 5;
-            UIScaleInput.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            IPTxt.Location = new Point(60, 12);
+            IPTxt.Name = "IPTxt";
+            IPTxt.Size = new Size(172, 23);
+            IPTxt.TabIndex = 4;
+            IPTxt.Text = "127.0.0.1:4545";
             // 
-            // SetUIScaleBtn
+            // label1
             // 
-            SetUIScaleBtn.Location = new Point(244, 422);
-            SetUIScaleBtn.Name = "SetUIScaleBtn";
-            SetUIScaleBtn.Size = new Size(35, 23);
-            SetUIScaleBtn.TabIndex = 6;
-            SetUIScaleBtn.Text = "Set";
-            SetUIScaleBtn.UseVisualStyleBackColor = true;
-            SetUIScaleBtn.Click += SetUIScaleBtn_Click;
+            label1.AutoSize = true;
+            label1.Location = new Point(12, 15);
+            label1.Name = "label1";
+            label1.Size = new Size(42, 15);
+            label1.TabIndex = 5;
+            label1.Text = "Server:";
+            // 
+            // connectBtn
+            // 
+            connectBtn.Location = new Point(452, 12);
+            connectBtn.Name = "connectBtn";
+            connectBtn.Size = new Size(75, 23);
+            connectBtn.TabIndex = 6;
+            connectBtn.Text = "Connect";
+            connectBtn.UseVisualStyleBackColor = true;
+            connectBtn.Click += connectBtn_Click;
+            // 
+            // statusLbl
+            // 
+            statusLbl.AutoSize = true;
+            statusLbl.Location = new Point(121, 655);
+            statusLbl.Name = "statusLbl";
+            statusLbl.Size = new Size(42, 15);
+            statusLbl.TabIndex = 7;
+            statusLbl.Text = "Status:";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(238, 15);
+            label3.Name = "label3";
+            label3.Size = new Size(33, 15);
+            label3.TabIndex = 9;
+            label3.Text = "User:";
+            // 
+            // userTxt
+            // 
+            userTxt.Location = new Point(277, 12);
+            userTxt.Name = "userTxt";
+            userTxt.Size = new Size(169, 23);
+            userTxt.TabIndex = 8;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 453);
-            Controls.Add(SetUIScaleBtn);
-            Controls.Add(UIScaleInput);
-            Controls.Add(UIScaleLabel);
+            ClientSize = new Size(800, 686);
+            Controls.Add(label3);
+            Controls.Add(userTxt);
+            Controls.Add(statusLbl);
+            Controls.Add(connectBtn);
+            Controls.Add(label1);
+            Controls.Add(IPTxt);
+            Controls.Add(UIScaleLbl);
             Controls.Add(PostListBtn);
-            Controls.Add(cBox);
-            Controls.Add(mainDisplayLabel);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Controls.Add(infoLbl);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             Name = "Form1";
             Text = "Task Board";
             Load += Form1_Load;
-            ((System.ComponentModel.ISupportInitialize)UIScaleInput).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
-        private Label mainDisplayLabel;
+        private Label infoLbl;
         private Label label2;
-        private System.Windows.Forms.TextBox cBox;
         private System.Windows.Forms.Button PostListBtn;
-        private Label UIScaleLabel;
-        private NumericUpDown UIScaleInput;
-        private System.Windows.Forms.Button SetUIScaleBtn;
+        private Label UIScaleLbl;
+        private System.Windows.Forms.TextBox IPTxt;
+        private Label label1;
+        private System.Windows.Forms.Button connectBtn;
+        private Label statusLbl;
+        private Label label3;
+        private System.Windows.Forms.TextBox userTxt;
     }
 }

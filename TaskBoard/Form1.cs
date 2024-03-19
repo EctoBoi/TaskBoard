@@ -2,27 +2,83 @@ using System.Drawing.Imaging;
 using Tesseract;
 using System.Text;
 using System.Runtime.InteropServices;
+using SuperSimpleTcp;
 
 namespace TaskBoard
 {
     public partial class Form1 : Form
     {
-        [LibraryImport("user32.dll")]
-        private static partial short GetAsyncKeyState(Int32 vKey);
-        readonly int VK_HOME = 0x24;
-
-        readonly int defaultUIScale = 100;
-        readonly string configPath = ".\\config.txt";
-
         public Form1()
         {
             InitializeComponent();
         }
 
+        [LibraryImport("user32.dll")]
+        private static partial short GetAsyncKeyState(Int32 vKey);
+        readonly int VK_HOME = 0x24;
+
+        readonly static int defaultUIScale = 100;
+        readonly static string configPath = ".\\config.txt";
+        readonly static string localIP = "127.0.0.1:4545";
+
+        int UIScale = defaultUIScale;
+
+        SimpleTcpClient? client;
+
         private void Form1_Load(object sender, EventArgs e)
         {
-            UIScaleInput.Value = GetUIScale();
+            CreateConfig();
+            UIScale = GetUIScale();
+            UIScaleLbl.Text = "UI Scale: " + UIScale;
+            IPTxt.Text = GetIP();
+            userTxt.Text = GetUser();
             CheckKeypressLoop();
+        }
+
+        private SimpleTcpClient CreateClient()
+        {
+            SimpleTcpClient c = new(IPTxt.Text);
+            c.Events.Connected += Events_Connected;
+            c.Events.Disconnected += Events_Disconnected;
+            c.Events.DataReceived += Events_DataReceived;
+            return c;
+        }
+
+        private void Events_Connected(object? sender, ConnectionEventArgs e)
+        {
+            this.Invoke((MethodInvoker)delegate
+            {
+                connectBtn.Enabled = false;
+                IPTxt.Enabled = false;
+                userTxt.Enabled = false;
+                PostListBtn.Enabled = true;
+                infoLbl.Text = "Server connected.";
+                statusLbl.Text = "Status: Connected";
+                if (client != null)
+                    client.Send($"$user={userTxt.Text}");
+                else
+                    statusLbl.Text = "Status: Client Error";
+            });
+        }
+
+        private void Events_Disconnected(object? sender, ConnectionEventArgs e)
+        {
+            this.Invoke((MethodInvoker)delegate
+            {
+                connectBtn.Enabled = true;
+                IPTxt.Enabled = true;
+                userTxt.Enabled = true;
+                PostListBtn.Enabled = false;
+                infoLbl.Text = $"Server disconnected.";
+            });
+        }
+
+        private void Events_DataReceived(object? sender, DataReceivedEventArgs e)
+        {
+            this.Invoke((MethodInvoker)delegate
+            {
+                infoLbl.Text = Encoding.UTF8.GetString(e.Data);
+            });
         }
 
         private async void CheckKeypressLoop()
@@ -33,7 +89,7 @@ namespace TaskBoard
 
                 short keyStatus = GetAsyncKeyState(VK_HOME);
 
-                if ((keyStatus & 1) == 1)
+                if ((keyStatus & 1) == 1 && client != null && client.IsConnected)
                     PostList();
             }
         }
@@ -41,10 +97,10 @@ namespace TaskBoard
         private void PostList()
         {
             Bitmap bmp = GetTaskListImage();
-            //Bitmap bmp = new Bitmap(".\\testimages\\Capture90-3.png");
+            //Bitmap bmp = new(".\\testimages\\Capture90-3.png");
 
             if (bmp == null)
-                mainDisplayLabel.Text += "Image Error";
+                statusLbl.Text = "Status: Image Error";
             else
             {
                 bmp.Save(@".\Capture.png", System.Drawing.Imaging.ImageFormat.Png);
@@ -55,38 +111,24 @@ namespace TaskBoard
                 if (taskList != null)
                 {
                     StringBuilder sb = new();
+                    sb.AppendLine("$taskList=");
                     for (int i = 0; i < taskList.Length; i++)
                     {
                         sb.AppendLine(taskList[i].ToString());
                     }
-                    mainDisplayLabel.Text = sb.ToString();
+                    if (client != null)
+                    {
+                        client.Send(sb.ToString());
+                        statusLbl.Text = "Status: Posted";
+                    }
+                    else
+                        statusLbl.Text = "Status: Client Error";
                 }
                 else
                 {
-                    mainDisplayLabel.Text = "taskList null";
+                    statusLbl.Text = "Status: Task List Error";
                 }
 
-            }
-        }
-
-        private void SetUIScale()
-        {
-            if (File.Exists(configPath))
-            {
-                String[] lines = File.ReadAllLines(configPath);
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (lines[i].Contains("UIScale"))
-                    {
-                        lines[i] = $"UIScale={UIScaleInput.Value}";
-                    }
-                }
-                File.WriteAllLines(configPath, lines);
-            }
-            else
-            {
-                CreateConfig();
-                UIScaleInput.Value = defaultUIScale;
             }
         }
 
@@ -103,6 +145,8 @@ namespace TaskBoard
                         return Int32.Parse(UISacle[1]);
                     }
                 }
+                //Add line if not found
+                File.AppendAllText(configPath, $"UIScale={defaultUIScale}" + Environment.NewLine);
                 return defaultUIScale;
             }
             else
@@ -112,11 +156,120 @@ namespace TaskBoard
             }
         }
 
+        private void SetIP()
+        {
+            if (File.Exists(configPath))
+            {
+                bool lineEdited = false;
+                String[] lines = File.ReadAllLines(configPath);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Contains("IP"))
+                    {
+                        lines[i] = $"IP={IPTxt.Text}";
+                        lineEdited = true;
+                    }
+                }
+                File.WriteAllLines(configPath, lines);
+
+                if (!lineEdited)
+                {
+                    File.AppendAllText(configPath, $"IP={IPTxt.Text}" + Environment.NewLine);
+                }
+            }
+            else
+            {
+                CreateConfig();
+            }
+        }
+
+        private string GetIP()
+        {
+            if (File.Exists(configPath))
+            {
+                String[] lines = File.ReadAllLines(configPath);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Contains("IP"))
+                    {
+                        string[] IP = lines[i].Split("=");
+                        return IP[1];
+                    }
+                }
+                //Add line if not found
+                File.AppendAllText(configPath, $"IP={localIP}" + Environment.NewLine);
+                return localIP;
+            }
+            else
+            {
+                CreateConfig();
+                return localIP;
+            }
+        }
+
+        private void SetUser()
+        {
+            if (File.Exists(configPath))
+            {
+                bool lineEdited = false;
+                String[] lines = File.ReadAllLines(configPath);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Contains("User"))
+                    {
+                        lines[i] = $"User={userTxt.Text}";
+                        lineEdited = true;
+                    }
+                }
+                File.WriteAllLines(configPath, lines);
+
+                if (!lineEdited)
+                {
+                    File.AppendAllText(configPath, $"User={userTxt.Text}" + Environment.NewLine);
+                }
+            }
+            else
+            {
+                CreateConfig();
+            }
+        }
+
+        private string GetUser()
+        {
+            if (File.Exists(configPath))
+            {
+                String[] lines = File.ReadAllLines(configPath);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Contains("User"))
+                    {
+                        string[] user = lines[i].Split("=");
+                        return user[1];
+                    }
+                }
+                //Add line if not found
+                File.AppendAllText(configPath, $"User={userTxt.Text}" + Environment.NewLine);
+                return "";
+            }
+            else
+            {
+                CreateConfig();
+                return "";
+            }
+        }
+
         private void CreateConfig()
         {
-            File.Create(configPath).Close();
-            String[] lines = [$"UIScale={defaultUIScale}"];
-            File.WriteAllLines(configPath, lines);
+            if (!File.Exists(configPath))
+            {
+                File.Create(configPath).Close();
+                String[] lines = [
+                    $"UIScale={defaultUIScale}",
+                    $"IP={localIP}",
+                    $"User="
+                ];
+                File.WriteAllLines(configPath, lines);
+            }
         }
 
         private Bitmap GetTaskListImage()
@@ -220,9 +373,28 @@ namespace TaskBoard
             PostList();
         }
 
-        private void SetUIScaleBtn_Click(object sender, EventArgs e)
+        private void connectBtn_Click(object sender, EventArgs e)
         {
-            SetUIScale();
+            if (!string.IsNullOrEmpty(IPTxt.Text))
+            {
+                if (!string.IsNullOrEmpty(userTxt.Text))
+                {
+                    if (!userTxt.Text.Contains('='))
+                    {
+                        SetIP();
+                        SetUser();
+                        try
+                        {
+                            client = CreateClient();
+                            client.Connect();
+                        }
+                        catch (Exception ex) { MessageBox.Show(ex.Message, "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                    }
+                    else { MessageBox.Show("Username can't contain \"=\"!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                }
+                else { MessageBox.Show("Username empty!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            }
+            else { MessageBox.Show("Server IP empty!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
     }
 }
