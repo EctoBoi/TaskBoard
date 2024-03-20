@@ -32,7 +32,7 @@ namespace TaskBoard
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             infoLbl = new Label();
-            PostListBtn = new System.Windows.Forms.Button();
+            postListBtn = new System.Windows.Forms.Button();
             UIScaleLbl = new Label();
             IPTxt = new System.Windows.Forms.TextBox();
             label1 = new Label();
@@ -40,6 +40,7 @@ namespace TaskBoard
             statusLbl = new Label();
             label3 = new Label();
             userTxt = new System.Windows.Forms.TextBox();
+            clearBtn = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
             // infoLbl
@@ -51,16 +52,16 @@ namespace TaskBoard
             infoLbl.Size = new Size(776, 589);
             infoLbl.TabIndex = 0;
             // 
-            // PostListBtn
+            // postListBtn
             // 
-            PostListBtn.Enabled = false;
-            PostListBtn.Location = new Point(12, 651);
-            PostListBtn.Name = "PostListBtn";
-            PostListBtn.Size = new Size(103, 23);
-            PostListBtn.TabIndex = 2;
-            PostListBtn.Text = "Post List (Home)";
-            PostListBtn.UseVisualStyleBackColor = true;
-            PostListBtn.Click += PostListBtn_Click;
+            postListBtn.Enabled = false;
+            postListBtn.Location = new Point(12, 651);
+            postListBtn.Name = "postListBtn";
+            postListBtn.Size = new Size(103, 23);
+            postListBtn.TabIndex = 2;
+            postListBtn.Text = "Post List (Home)";
+            postListBtn.UseVisualStyleBackColor = true;
+            postListBtn.Click += PostListBtn_Click;
             // 
             // UIScaleLbl
             // 
@@ -101,7 +102,7 @@ namespace TaskBoard
             // statusLbl
             // 
             statusLbl.AutoSize = true;
-            statusLbl.Location = new Point(121, 655);
+            statusLbl.Location = new Point(184, 655);
             statusLbl.Name = "statusLbl";
             statusLbl.Size = new Size(42, 15);
             statusLbl.TabIndex = 7;
@@ -123,11 +124,23 @@ namespace TaskBoard
             userTxt.Size = new Size(169, 23);
             userTxt.TabIndex = 8;
             // 
+            // clearBtn
+            // 
+            clearBtn.Enabled = false;
+            clearBtn.Location = new Point(121, 651);
+            clearBtn.Name = "clearBtn";
+            clearBtn.Size = new Size(57, 23);
+            clearBtn.TabIndex = 10;
+            clearBtn.Text = "Clear";
+            clearBtn.UseVisualStyleBackColor = true;
+            clearBtn.Click += clearBtn_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 686);
+            Controls.Add(clearBtn);
             Controls.Add(label3);
             Controls.Add(userTxt);
             Controls.Add(statusLbl);
@@ -135,7 +148,7 @@ namespace TaskBoard
             Controls.Add(label1);
             Controls.Add(IPTxt);
             Controls.Add(UIScaleLbl);
-            Controls.Add(PostListBtn);
+            Controls.Add(postListBtn);
             Controls.Add(infoLbl);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -151,7 +164,7 @@ namespace TaskBoard
 
         private Label infoLbl;
         private Label label2;
-        private System.Windows.Forms.Button PostListBtn;
+        private System.Windows.Forms.Button postListBtn;
         private Label UIScaleLbl;
         private System.Windows.Forms.TextBox IPTxt;
         private Label label1;
@@ -159,5 +172,6 @@ namespace TaskBoard
         private Label statusLbl;
         private Label label3;
         private System.Windows.Forms.TextBox userTxt;
+        private System.Windows.Forms.Button clearBtn;
     }
 }

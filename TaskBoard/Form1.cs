@@ -53,12 +53,13 @@ namespace TaskBoard
                 connectBtn.Enabled = false;
                 IPTxt.Enabled = false;
                 userTxt.Enabled = false;
-                PostListBtn.Enabled = true;
+                postListBtn.Enabled = true;
+                clearBtn.Enabled = true;
                 infoLbl.Text = "Server connecting...";
                 if (client != null)
                     client.Send($"$user={userTxt.Text}");
                 else
-                    statusLbl.Text = "Status: Client Error";
+                    SetStatus("Client Error");
             });
         }
 
@@ -69,9 +70,10 @@ namespace TaskBoard
                 connectBtn.Enabled = true;
                 IPTxt.Enabled = true;
                 userTxt.Enabled = true;
-                PostListBtn.Enabled = false;
+                postListBtn.Enabled = false;
+                clearBtn.Enabled = false;
                 infoLbl.Text = "Server disconnected.";
-                statusLbl.Text = "Status: Disconnected";
+                SetStatus("Disconnected");
                 if (reconnects < 3)
                 {
                     reconnects++;
@@ -88,6 +90,11 @@ namespace TaskBoard
                 reconnects = 0;
                 infoLbl.Text = Encoding.UTF8.GetString(e.Data);
             });
+        }
+
+        private void SetStatus(string status)
+        {
+            statusLbl.Text = "Status: " + status;
         }
 
         private async void CheckKeypressLoop()
@@ -109,7 +116,7 @@ namespace TaskBoard
             //Bitmap bmp = new(".\\testimages\\Capture90-3.png");
 
             if (bmp == null)
-                statusLbl.Text = "Status: Image Error";
+                SetStatus("Image Error");
             else
             {
                 bmp.Save(@".\Capture.png", System.Drawing.Imaging.ImageFormat.Png);
@@ -121,24 +128,41 @@ namespace TaskBoard
                 {
                     StringBuilder sb = new();
                     sb.AppendLine("$taskList=");
-                    for (int i = 0; i < taskList.Length; i++)
+                    for (int i = 0; i < 8; i++)
                     {
                         sb.AppendLine(taskList[i].ToString());
                     }
                     if (client != null)
                     {
                         client.Send(sb.ToString());
-                        statusLbl.Text = "Status: Posted";
+                        SetStatus("Posted");
                     }
                     else
-                        statusLbl.Text = "Status: Client Error";
+                        SetStatus("Client Error");
                 }
                 else
                 {
-                    statusLbl.Text = "Status: Task List Error";
+                    SetStatus("Task List Error");
                 }
 
             }
+        }
+
+        private void ClearList()
+        {
+            StringBuilder sb = new();
+            sb.AppendLine("$taskList=");
+            for (int i = 0; i < 8; i++)
+            {
+                sb.AppendLine("");
+            }
+            if (client != null)
+            {
+                client.Send(sb.ToString());
+                SetStatus("Cleared");
+            }
+            else
+                SetStatus("Client Error");
         }
 
         private int GetUIScale()
@@ -401,7 +425,7 @@ namespace TaskBoard
             else { MessageBox.Show("Server IP empty!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
-       private void PostListBtn_Click(object sender, EventArgs e)
+        private void PostListBtn_Click(object sender, EventArgs e)
         {
             PostList();
         }
@@ -409,6 +433,11 @@ namespace TaskBoard
         private void connectBtn_Click(object sender, EventArgs e)
         {
             Connect();
+        }
+
+        private void clearBtn_Click(object sender, EventArgs e)
+        {
+            ClearList();
         }
     }
 }

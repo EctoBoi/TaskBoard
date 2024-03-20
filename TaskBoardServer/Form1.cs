@@ -14,6 +14,7 @@ namespace TaskBoardServer
         SimpleTcpServer? server;
 
         private List<User> users = [];
+        private List<User> oldUsers = [];
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -25,7 +26,7 @@ namespace TaskBoardServer
             public readonly string IpPort = IpPort;
             public string username = "NONAME";
             public string[] taskList = new string[8];
-            public DateTime lastListUpdate = new();
+            public DateTime lastListUpdate = DateTime.Now;
         }
 
         private SimpleTcpServer CreateServer()
@@ -96,12 +97,22 @@ namespace TaskBoardServer
             StringBuilder sb = new();
             foreach (User u in users)
             {
-                int hour;
+                string hour;
                 if (u.lastListUpdate.Hour > 12)
-                    hour = u.lastListUpdate.Hour - 12;
+                {
+                    hour = (u.lastListUpdate.Hour - 12).ToString();
+                }
                 else
-                    hour = u.lastListUpdate.Hour;
-                sb.AppendLine(u.username + " @ " + hour + ":" + u.lastListUpdate.Minute);
+                    hour = u.lastListUpdate.Hour.ToString();
+                if (hour == "0")
+                    hour = "12";
+                string minute;
+                if (u.lastListUpdate.Minute < 10)
+                    minute = "0" + u.lastListUpdate.Minute.ToString();
+                else
+                    minute = u.lastListUpdate.Minute.ToString();
+
+                sb.AppendLine($"{u.username} @ {hour}:{minute}");
                 for (int i = 0; i < 8; i++)
                 {
                     sb.AppendLine(u.taskList[i]);
