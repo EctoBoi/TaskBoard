@@ -51,6 +51,7 @@ namespace TaskBoardServer
         {
             this.Invoke((MethodInvoker)delegate
             {
+                oldUsers.Add(users.Single(x => x.IpPort == e.IpPort));
                 users.Remove(users.Single(x => x.IpPort == e.IpPort));
                 UpdateUserList();
                 infoTxt.Text += $"{e.IpPort} disconnected.{Environment.NewLine}";
@@ -77,7 +78,17 @@ namespace TaskBoardServer
                 if (dataString.Contains("$user="))
                 {
                     string username = dataString.Split('=')[1];
-                    users.Single(x => x.IpPort == e.IpPort).username = username;
+
+                    User currentUser = users.Single(x => x.IpPort == e.IpPort);
+                    currentUser.username = username;
+                    if (oldUsers.Exists(x => x.username == username))
+                    {
+                        User oldUser = oldUsers.Single(x => x.username == username);
+                        currentUser.taskList = oldUser.taskList;
+                        currentUser.lastListUpdate = oldUser.lastListUpdate;
+                        oldUsers.Remove(oldUser);
+                    }
+                        
                     infoTxt.Text += $"{e.IpPort}: Username is {username}{Environment.NewLine}";
                     UpdateUserList();
                 }

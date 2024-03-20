@@ -80,7 +80,7 @@
             userLst.ItemHeight = 15;
             userLst.Location = new Point(607, 40);
             userLst.Name = "userLst";
-            userLst.Size = new Size(162, 304);
+            userLst.Size = new Size(232, 304);
             userLst.TabIndex = 11;
             // 
             // label2
@@ -96,7 +96,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(780, 355);
+            ClientSize = new Size(851, 355);
             Controls.Add(label2);
             Controls.Add(userLst);
             Controls.Add(infoTxt);
