@@ -1,4 +1,5 @@
 using SuperSimpleTcp;
+using System.Linq;
 using System.Text;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
@@ -15,11 +16,6 @@ namespace TaskBoardServer
 
         private List<User> users = [];
         private List<User> oldUsers = [];
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
 
         private class User(string IpPort)
         {
@@ -88,7 +84,7 @@ namespace TaskBoardServer
                         currentUser.lastListUpdate = oldUser.lastListUpdate;
                         oldUsers.Remove(oldUser);
                     }
-                        
+
                     infoTxt.Text += $"{e.IpPort}: Username is {username}{Environment.NewLine}";
                     UpdateUserList();
                 }
@@ -105,7 +101,11 @@ namespace TaskBoardServer
         private void SendTaskBoard()
         {
             users = [.. users.OrderBy(o => o.username)];
-            StringBuilder sb = new();
+            StringBuilder mainBoard = new();
+            StringBuilder teamNeeds = new();
+
+            teamNeeds.AppendLine("===Team Needs===");
+
             foreach (User u in users)
             {
                 string hour;
@@ -122,26 +122,72 @@ namespace TaskBoardServer
                     minute = "0" + u.lastListUpdate.Minute.ToString();
                 else
                     minute = u.lastListUpdate.Minute.ToString();
+                mainBoard.AppendLine($"{u.username} @ {hour}:{minute}");
 
-                sb.AppendLine($"{u.username} @ {hour}:{minute}");
+                teamNeeds.AppendLine(u.username + ":");
+
+                bool needAdded = false;
                 for (int i = 0; i < 8; i++)
                 {
-                    sb.AppendLine(u.taskList[i]);
+                    mainBoard.AppendLine(u.taskList[i]);
+                    if (i % 2 == 0)
+                    {
+                        string need = GetNeed(u.taskList[i]);
+                        if (need != "")
+                        {
+                            if (needAdded)
+                                teamNeeds.Append(", ");
+                            teamNeeds.Append(GetNeed(u.taskList[i]));
+                            needAdded = true;
+                        }
+                    }
                 }
-                sb.AppendLine("");
+                mainBoard.AppendLine("");
+                teamNeeds.AppendLine("");
             }
 
             foreach (User u in users)
             {
                 if (server != null)
                 {
-                    server.Send(u.IpPort, sb.ToString());
+                    server.Send(u.IpPort, mainBoard.ToString() + teamNeeds.ToString());
                     infoTxt.Text += $"Task Board sent to {u.username}{Environment.NewLine}";
                 }
                 else
                     infoTxt.Text += $"SendTaskBoard Error{Environment.NewLine}";
             }
 
+        }
+
+        private static string GetNeed(string task)
+        {
+            string need = "";
+
+            if (task.Contains("Poison damage"))
+                need = "Poison damage";
+            if (task.Contains("Fire damage"))
+                need = "Fire damage";
+            if (task.Contains("Dusters"))
+                need = "Dusters";
+            if (task.Contains("Knuckle Knife"))
+                need = "Dusters";
+            if (task.Contains("Hunters bleed"))
+                need = "Bleed Hunters";
+            if (task.Contains("Hunters on fire"))
+                need = "Burn Hunters";
+            if (task.Contains("Poison enemy"))
+                need = "Poison Hunters";
+            if (task.Contains("Melee Damage"))
+                need = "Melee Hunters";
+
+            if (task.Contains("Hunters using") && task.Contains(':'))
+                need = task.Split(':')[1];
+            if (task.Contains("headshot") && task.Contains(':'))
+                need = "Headshot with " + task.Split(':')[1].Trim();
+            else if (task.Contains("headshot"))
+                need = "Headshots";
+
+            return need.Trim();
         }
 
         private void startBtn_Click(object sender, EventArgs e)
