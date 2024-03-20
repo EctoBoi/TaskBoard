@@ -163,29 +163,33 @@ namespace TaskBoardServer
         {
             string need = "";
 
-            if (task.Contains("Poison damage"))
-                need = "Poison damage";
-            if (task.Contains("Fire damage"))
-                need = "Fire damage";
-            if (task.Contains("Dusters"))
-                need = "Dusters";
-            if (task.Contains("Knuckle Knife"))
-                need = "Dusters";
-            if (task.Contains("Hunters bleed"))
-                need = "Bleed Hunters";
-            if (task.Contains("Hunters on fire"))
-                need = "Burn Hunters";
-            if (task.Contains("Poison enemy"))
-                need = "Poison Hunters";
-            if (task.Contains("Melee Damage"))
-                need = "Melee Hunters";
+            if (task != null)
+            {
+                if (task.Contains("Poison Damage"))
+                    need = "Poison Damage";
+                if (task.Contains("Fire Damage"))
+                    need = "Fire Damage";
+                if (task.Contains("Dusters"))
+                    need = "Dusters";
+                if (task.Contains("Knuckle Knife"))
+                    need = "Dusters";
+                if (task.Contains("Hunters bleed"))
+                    need = "Bleed Hunters";
+                if (task.Contains("Hunters on fire"))
+                    need = "Burn Hunters";
+                if (task.Contains("Poison enemy"))
+                    need = "Poison Hunters";
+                if (task.Contains("Melee Damage"))
+                    need = "Melee Hunters";
 
-            if (task.Contains("Hunters using") && task.Contains(':'))
-                need = task.Split(':')[1];
-            if (task.Contains("headshot") && task.Contains(':'))
-                need = "Headshot with " + task.Split(':')[1].Trim();
-            else if (task.Contains("headshot"))
-                need = "Headshots";
+                if (task.Contains("Hunters using") && task.Contains(':'))
+                    need = task.Split(':')[1];
+                if (task.Contains("headshot") && task.Contains(':'))
+                    need = "Headshot with " + task.Split(':')[1].Trim();
+                else if (task.Contains("headshot"))
+                    need = "Headshots";
+
+            }
 
             return need.Trim();
         }
