@@ -136,7 +136,7 @@ namespace TaskBoardServer
                         if (need != "")
                         {
                             if (needAdded)
-                                teamNeeds.Append(", ");
+                                teamNeeds.Append(" | ");
                             teamNeeds.Append(GetNeed(u.taskList[i]));
                             needAdded = true;
                         }

@@ -18,7 +18,7 @@ namespace TaskBoard
         readonly int VK_HOME = 0x24;
 
         readonly static int defaultUIScale = 100;
-        readonly static string configPath = ".\\config.txt";
+        readonly static string configPath = @".\config.txt";
         readonly static string localIP = "127.0.0.1:4545";
 
         int UIScale = defaultUIScale;
@@ -113,7 +113,6 @@ namespace TaskBoard
         private void PostList()
         {
             Bitmap bmp = GetTaskListImage();
-            //Bitmap bmp = new(".\\testimages\\Capture90-3.png");
 
             if (bmp == null)
                 SetStatus("Image Error");
@@ -318,7 +317,11 @@ namespace TaskBoard
             int cWidth = (Int32)(((maxWidth - minWidth) * scale) + minWidth);
             int cHeight = (Int32)(((maxHeight - minHeight) * scale) + minHeight);
 
-            return ScreenshotTaskList(cX, cY, cWidth, cHeight);
+
+            Bitmap screenshot = ScreenshotTaskList(cX, cY, cWidth, cHeight);
+            //Bitmap screenshot = new(@".\testimages\CaptureBear.png");
+
+            return screenshot;
         }
 
         private static Bitmap ScreenshotTaskList(Int32 x, Int32 y, Int32 width, Int32 height)
@@ -377,25 +380,29 @@ namespace TaskBoard
 
             int notEmptyCount = 0;
 
-            TesseractEngine engine = new("./tessdata", "eng", EngineMode.Default);
-
-            for (int i = 0; i < 8; i++)
+            using (StreamWriter writer = new(@".\list.txt"))
             {
-                Bitmap tempbmp = bmp.Clone(taskPartsRects[i], bmp.PixelFormat);
-                Tesseract.Page page = engine.Process(tempbmp, PageSegMode.SparseText);
+                using TesseractEngine engine = new("./tessdata", "eng", EngineMode.Default);
+                for (int i = 0; i < 8; i++)
+                {
+                    Bitmap tempbmp = bmp.Clone(taskPartsRects[i], bmp.PixelFormat);
+                    if (i % 2 == 0)
+                        tempbmp = OCRPreprocessor.PreprocessForOCR(tempbmp, 85);
+                    else
+                        tempbmp = OCRPreprocessor.PreprocessForOCR(tempbmp, 100);
+                    using Tesseract.Page page = engine.Process(tempbmp, PageSegMode.SingleBlock);
+                    //tempbmp.Save($@".\testimages\CapturePart{i}.png", System.Drawing.Imaging.ImageFormat.Png);
+                    string[] strings = page.GetText().Trim().Split(null);
+                    taskList[i] = String.Join(" ", strings).Replace("  ", " ");
 
-                //tempbmp.Save($@".\testimages\CapturePart{i}.png", System.Drawing.Imaging.ImageFormat.Png);
-                string[] strings = page.GetText().Trim().Split(null);
-                taskList[i] = String.Join(" ", strings).Replace("  ", " ");
+                    writer.WriteLine(taskList[i]);
 
-                if (taskList[i].Length > 0)
-                    notEmptyCount++;
-                page.Dispose();
+                    if (taskList[i].Length > 0)
+                        notEmptyCount++;
+                }
             }
 
-            engine.Dispose();
-
-            if (notEmptyCount == 8)
+            if (notEmptyCount > 3)
                 return taskList;
             else
                 return null;
