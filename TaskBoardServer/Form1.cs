@@ -23,6 +23,7 @@ namespace TaskBoardServer
             public string username = "NONAME";
             public string[] taskList = new string[8];
             public DateTime lastListUpdate = DateTime.Now;
+            public DateTime lastActive = DateTime.Now;
         }
 
         private SimpleTcpServer CreateServer()
@@ -62,6 +63,7 @@ namespace TaskBoardServer
 
                 if (dataString == "$keepAlive")
                 {
+                    users.Single(x => x.IpPort == e.IpPort).lastActive = DateTime.Now;
                     server?.Send(e.IpPort, "$keepAlive");
                 }
                 else if (dataString.Contains("$user="))
@@ -96,6 +98,24 @@ namespace TaskBoardServer
             });
         }
 
+        private async void RemoveInactiveUsersLoop()
+        {
+            while (true)
+            {
+                foreach (User user in users)
+                {
+                    infoTxt.Text += $"Diff: {DateTime.Now - user.lastActive}{Environment.NewLine}";
+                    if (DateTime.Now - user.lastActive > TimeSpan.FromMilliseconds(69999))
+                    {
+                        infoTxt.Text += $"{user.IpPort} removed for inactivity.{Environment.NewLine}";
+                        oldUsers.Add(user);
+                        users.Remove(user);
+                        UpdateUserList();
+                    }
+                }
+                await Task.Delay(59999);
+            }
+        }
 
         private void UpdateUserList()
         {
@@ -260,6 +280,7 @@ namespace TaskBoardServer
             infoTxt.Text += $"Starting...{Environment.NewLine}";
             server = CreateServer();
             server.Start();
+            RemoveInactiveUsersLoop();
             startBtn.Enabled = false;
         }
     }

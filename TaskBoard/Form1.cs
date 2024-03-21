@@ -101,8 +101,8 @@ namespace TaskBoard
             {
                 if (client != null && client.IsConnected)
                 {
-                    await Task.Delay(59999);
                     client.Send("$keepAlive");
+                    await Task.Delay(59999);
                 }
             }
         }
