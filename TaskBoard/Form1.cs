@@ -88,7 +88,9 @@ namespace TaskBoard
             this.Invoke((MethodInvoker)delegate
             {
                 reconnects = 0;
-                infoLbl.Text = Encoding.UTF8.GetString(e.Data);
+                string dataString = Encoding.UTF8.GetString(e.Data);
+                if (dataString != "$keepAlive")
+                    infoLbl.Text = dataString;
             });
         }
 

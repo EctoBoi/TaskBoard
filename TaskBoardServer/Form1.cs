@@ -91,6 +91,18 @@ namespace TaskBoardServer
             });
         }
 
+        private async void KeepAliveLoop()
+        {
+            while (true)
+            {
+                await Task.Delay(60000);
+                foreach (User user in users) 
+                {
+                    server?.Send(user.IpPort, "$keepAlive");
+                }
+            }
+        }
+
         private void UpdateUserList()
         {
             userLst.Items.Clear();
@@ -196,9 +208,10 @@ namespace TaskBoardServer
 
         private void startBtn_Click(object sender, EventArgs e)
         {
+            infoTxt.Text += $"Starting...{Environment.NewLine}";
             server = CreateServer();
             server.Start();
-            infoTxt.Text += $"Starting...{Environment.NewLine}";
+            KeepAliveLoop();
             startBtn.Enabled = false;
         }
     }
