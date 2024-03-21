@@ -60,18 +60,11 @@ namespace TaskBoardServer
             {
                 string dataString = Encoding.UTF8.GetString(e.Data);
 
-                if (dataString.Contains("$taskList="))
+                if (dataString == "$keepAlive")
                 {
-                    string[] strings = dataString.Split(Environment.NewLine);
-                    User u = users.Single(x => x.IpPort == e.IpPort);
-                    for (int i = 0; i < 8; i++)
-                    {
-                        u.taskList[i] = strings[i + 1];
-                    }
-                    u.lastListUpdate = DateTime.Now;
-                    SendTaskBoard();
+                    server?.Send(e.IpPort, "$keepAlive");
                 }
-                if (dataString.Contains("$user="))
+                else if (dataString.Contains("$user="))
                 {
                     string username = dataString.Split('=')[1];
 
@@ -87,27 +80,27 @@ namespace TaskBoardServer
 
                     infoTxt.Text += $"{e.IpPort}: Username is {username}{Environment.NewLine}";
                     UpdateUserList();
+                    SendTaskBoard();
+                }
+                else if (dataString.Contains("$taskList="))
+                {
+                    string[] strings = dataString.Split(Environment.NewLine);
+                    User u = users.Single(x => x.IpPort == e.IpPort);
+                    for (int i = 0; i < 8; i++)
+                    {
+                        u.taskList[i] = strings[i + 1];
+                    }
+                    u.lastListUpdate = DateTime.Now;
+                    SendTaskBoard();
                 }
             });
         }
 
-        private async void KeepAliveLoop()
-        {
-            while (true)
-            {
-                await Task.Delay(60000);
-                foreach (User user in users) 
-                {
-                    server?.Send(user.IpPort, "$keepAlive");
-                }
-            }
-        }
 
         private void UpdateUserList()
         {
             userLst.Items.Clear();
             users.ForEach(x => userLst.Items.Add(x.IpPort + "=" + x.username));
-            SendTaskBoard();
         }
 
         private void SendTaskBoard()
@@ -141,18 +134,26 @@ namespace TaskBoardServer
                 bool needAdded = false;
                 for (int i = 0; i < 8; i++)
                 {
-                    mainBoard.AppendLine(u.taskList[i]);
                     if (i % 2 == 0)
                     {
+                        mainBoard.Append(SimplifyTask(u.taskList[i]));
                         string need = GetNeed(u.taskList[i]);
                         if (need != "")
                         {
                             if (needAdded)
-                                teamNeeds.Append(" | ");
+                                teamNeeds.Append(" || ");
                             teamNeeds.Append(GetNeed(u.taskList[i]));
                             needAdded = true;
                         }
                     }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(u.taskList[i]))
+                            mainBoard.AppendLine($" ({u.taskList[i]})");
+                        else
+                            mainBoard.AppendLine("");
+                    }
+                        
                 }
                 mainBoard.AppendLine("");
                 teamNeeds.AppendLine("");
@@ -171,12 +172,60 @@ namespace TaskBoardServer
 
         }
 
+        private static string SimplifyTask(string task)
+        {
+            string simp = "";
+
+            if (task != null)
+            {
+                simp = task;
+
+                if (task.Contains("Throwing") && task.Contains("Hives"))
+                    simp = "Kill Hives with: Throwing Weapon";
+                if (task.Contains("Lantern Grunt"))
+                    simp = "Kill Lantern Grunts";
+                if (task.Contains("Pistol Grunt"))
+                    simp = "Kill Pistol Grunts";
+
+                if (task.Contains("Destroy"))
+                    simp = "Destroy Dog Cages or Chicken Coops";
+                if (task.Contains("Collect Clues"))
+                    simp = "Collect Clues";
+                if (task.Contains("Banish Targets"))
+                    simp = "Banish Targets";
+                if (task.Contains("Extract"))
+                    simp = "Extract with a Bounty";
+
+                if (task.Contains("Hunters bleed"))
+                    simp = "Bleed Hunters";
+                if (task.Contains("Hunters on fire"))
+                    simp = "Burn Hunters";
+                if (task.Contains("Poison enemy"))
+                    simp = "Poison Hunters";
+                if (task.Contains("Melee Damage"))
+                    simp = "Melee Hunters";
+                if (task.Contains("damage to enemy Hunters") && !task.Contains("using"))
+                    simp = "Damage Hunters";
+
+                if (task.Contains("Hunters using") && task.Contains(':'))
+                    simp = "Damage Hunters using: " + task.Split(':')[1];
+                if (task.Contains("headshot") && task.Contains(':'))
+                    simp = "Headshot Hunters with: " + task.Split(':')[1].Trim();
+                else if (task.Contains("headshot"))
+                    simp = "Headshot Hunters";
+            }
+
+            return simp;
+        }
+
         private static string GetNeed(string task)
         {
             string need = "";
 
             if (task != null)
             {
+                if (task.Contains("Throwing"))
+                    need = "Throwing Weapon";
                 if (task.Contains("Poison Damage"))
                     need = "Poison Damage";
                 if (task.Contains("Fire Damage"))
@@ -185,6 +234,7 @@ namespace TaskBoardServer
                     need = "Dusters";
                 if (task.Contains("Knuckle Knife"))
                     need = "Dusters";
+
                 if (task.Contains("Hunters bleed"))
                     need = "Bleed Hunters";
                 if (task.Contains("Hunters on fire"))
@@ -200,7 +250,6 @@ namespace TaskBoardServer
                     need = "Headshot with " + task.Split(':')[1].Trim();
                 else if (task.Contains("headshot"))
                     need = "Headshots";
-
             }
 
             return need.Trim();
@@ -211,7 +260,6 @@ namespace TaskBoardServer
             infoTxt.Text += $"Starting...{Environment.NewLine}";
             server = CreateServer();
             server.Start();
-            KeepAliveLoop();
             startBtn.Enabled = false;
         }
     }

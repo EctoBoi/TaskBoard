@@ -3,6 +3,7 @@ using Tesseract;
 using System.Text;
 using System.Runtime.InteropServices;
 using SuperSimpleTcp;
+using Microsoft.VisualBasic.ApplicationServices;
 
 namespace TaskBoard
 {
@@ -50,12 +51,13 @@ namespace TaskBoard
         {
             this.Invoke((MethodInvoker)delegate
             {
+                KeepAliveLoop();
                 connectBtn.Enabled = false;
                 IPTxt.Enabled = false;
                 userTxt.Enabled = false;
                 postListBtn.Enabled = true;
                 clearBtn.Enabled = true;
-                infoLbl.Text = "Server connecting...";
+                SetStatus("Connected");
                 if (client != null)
                     client.Send($"$user={userTxt.Text}");
                 else
@@ -72,12 +74,11 @@ namespace TaskBoard
                 userTxt.Enabled = true;
                 postListBtn.Enabled = false;
                 clearBtn.Enabled = false;
-                infoLbl.Text = "Server disconnected.";
                 SetStatus("Disconnected");
                 if (reconnects < 3)
                 {
                     reconnects++;
-                    infoLbl.Text = $"Server disconnected.{Environment.NewLine}Reconnecting...({reconnects})";
+                    SetStatus("Reconnecting...");
                     Task.Delay(1000).ContinueWith(t => Connect());
                 }
             });
@@ -92,6 +93,18 @@ namespace TaskBoard
                 if (dataString != "$keepAlive")
                     infoLbl.Text = dataString;
             });
+        }
+
+        private async void KeepAliveLoop()
+        {
+            while (true)
+            {
+                if (client != null && client.IsConnected)
+                {
+                    await Task.Delay(59999);
+                    client.Send("$keepAlive");
+                }
+            }
         }
 
         private void SetStatus(string status)
@@ -321,7 +334,7 @@ namespace TaskBoard
 
 
             Bitmap screenshot = ScreenshotTaskList(cX, cY, cWidth, cHeight);
-            //Bitmap screenshot = new(@".\testimages\CaptureBear.png");
+            //Bitmap screenshot = new(@".\testimages\Capture3.png");
 
             return screenshot;
         }
@@ -389,9 +402,16 @@ namespace TaskBoard
                 {
                     Bitmap tempbmp = bmp.Clone(taskPartsRects[i], bmp.PixelFormat);
                     if (i % 2 == 0)
+                    {
+                        engine.SetVariable("tessedit_char_whitelist", "");
                         tempbmp = OCRPreprocessor.PreprocessForOCR(tempbmp, 85);
+                    }
                     else
+                    {
+                        engine.SetVariable("tessedit_char_whitelist", "/0123456789");
                         tempbmp = OCRPreprocessor.PreprocessForOCR(tempbmp, 100);
+                    }
+                        
                     using Tesseract.Page page = engine.Process(tempbmp, PageSegMode.SingleBlock);
                     //tempbmp.Save($@".\testimages\CapturePart{i}.png", System.Drawing.Imaging.ImageFormat.Png);
                     string[] strings = page.GetText().Trim().Split(null);
@@ -425,7 +445,7 @@ namespace TaskBoard
                             client = CreateClient();
                             client.Connect();
                         }
-                        catch (Exception ex) { infoLbl.Text = "Connection Error: " + ex.Message; }
+                        catch (Exception ex) { SetStatus("Connection Error: " + ex.Message); }
                     }
                     else { MessageBox.Show("Username can't contain \"=\"!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
                 }
@@ -434,7 +454,7 @@ namespace TaskBoard
             else { MessageBox.Show("Server IP empty!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
-        private void PostListBtn_Click(object sender, EventArgs e)
+        private void postListBtn_Click(object sender, EventArgs e)
         {
             PostList();
         }

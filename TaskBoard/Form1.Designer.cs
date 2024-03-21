@@ -61,7 +61,7 @@ namespace TaskBoard
             postListBtn.TabIndex = 2;
             postListBtn.Text = "Post List (Home)";
             postListBtn.UseVisualStyleBackColor = true;
-            postListBtn.Click += PostListBtn_Click;
+            postListBtn.Click += postListBtn_Click;
             // 
             // UIScaleLbl
             // 
