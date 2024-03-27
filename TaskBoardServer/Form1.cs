@@ -40,7 +40,7 @@ namespace TaskBoardServer
             this.Invoke((MethodInvoker)delegate
             {
                 users.Add(new User(e.IpPort));
-                infoTxt.Text += $"{e.IpPort} connected.{Environment.NewLine}";
+                infoTxt.Text += $"{e.IpPort} connected{Environment.NewLine}";
             });
         }
 
@@ -51,7 +51,7 @@ namespace TaskBoardServer
                 oldUsers.Add(users.Single(x => x.IpPort == e.IpPort));
                 users.Remove(users.Single(x => x.IpPort == e.IpPort));
                 UpdateUserList();
-                infoTxt.Text += $"{e.IpPort} disconnected.{Environment.NewLine}";
+                infoTxt.Text += $"{e.IpPort} disconnected{Environment.NewLine}";
             });
         }
 
@@ -104,13 +104,19 @@ namespace TaskBoardServer
             {
                 foreach (User user in users)
                 {
-                    infoTxt.Text += $"Diff: {DateTime.Now - user.lastActive}{Environment.NewLine}";
-                    if (DateTime.Now - user.lastActive > TimeSpan.FromMilliseconds(69999))
+                    try
                     {
-                        infoTxt.Text += $"{user.IpPort} removed for inactivity.{Environment.NewLine}";
-                        oldUsers.Add(user);
-                        users.Remove(user);
-                        UpdateUserList();
+                        if (DateTime.Now - user.lastActive > TimeSpan.FromMilliseconds(69999))
+                        {
+                            infoTxt.Text += $"{user.IpPort} removed for inactivity{Environment.NewLine}";
+                            oldUsers.Add(user);
+                            users.Remove(user);
+                            UpdateUserList();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        infoTxt.Text += $"{e.Message}{Environment.NewLine}";
                     }
                 }
                 await Task.Delay(59999);
@@ -173,7 +179,7 @@ namespace TaskBoardServer
                         else
                             mainBoard.AppendLine("");
                     }
-                        
+
                 }
                 mainBoard.AppendLine("");
                 teamNeeds.AppendLine("");
@@ -184,7 +190,7 @@ namespace TaskBoardServer
                 if (server != null)
                 {
                     server.Send(u.IpPort, mainBoard.ToString() + teamNeeds.ToString());
-                    infoTxt.Text += $"Task Board sent to {u.username}{Environment.NewLine}";
+                    //infoTxt.Text += $"Task Board sent to {u.username}{Environment.NewLine}";
                 }
                 else
                     infoTxt.Text += $"SendTaskBoard Error{Environment.NewLine}";
@@ -198,41 +204,94 @@ namespace TaskBoardServer
 
             if (task != null)
             {
-                simp = task;
-
-                if (task.Contains("Throwing") && task.Contains("Hives"))
-                    simp = "Kill Hives with: Throwing Weapon";
-                if (task.Contains("Lantern Grunt"))
-                    simp = "Kill Lantern Grunts";
-                if (task.Contains("Pistol Grunt"))
-                    simp = "Kill Pistol Grunts";
-
-                if (task.Contains("Destroy"))
-                    simp = "Destroy Dog Cages or Chicken Coops";
-                if (task.Contains("Collect Clues"))
-                    simp = "Collect Clues";
-                if (task.Contains("Banish Targets"))
-                    simp = "Banish Targets";
-                if (task.Contains("Extract"))
-                    simp = "Extract with a Bounty";
-
-                if (task.Contains("Hunters bleed"))
-                    simp = "Bleed Hunters";
-                if (task.Contains("Hunters on fire"))
-                    simp = "Burn Hunters";
-                if (task.Contains("Poison enemy"))
-                    simp = "Poison Hunters";
-                if (task.Contains("Melee Damage"))
-                    simp = "Melee Hunters";
-                if (task.Contains("damage to enemy Hunters") && !task.Contains("using"))
-                    simp = "Damage Hunters";
-
-                if (task.Contains("Hunters using") && task.Contains(':'))
-                    simp = "Damage Hunters using: " + task.Split(':')[1];
-                if (task.Contains("headshot") && task.Contains(':'))
-                    simp = "Headshot Hunters with: " + task.Split(':')[1].Trim();
-                else if (task.Contains("headshot"))
-                    simp = "Headshot Hunters";
+                switch (task)
+                {
+                    case string t when t.Contains("Grunts"):
+                        simp = "Grunts";
+                        break;
+                    case string t when t.Contains("Lantern Grunt"):
+                        simp = "Lantern Grunts";
+                        break;
+                    case string t when t.Contains("Pistol Grunt"):
+                        simp = "Pistol Grunts";
+                        break;
+                    case string t when t.Contains("Meatheads"):
+                        simp = "Meatheads";
+                        break;
+                    case string t when t.Contains("Water Devils"):
+                        simp = "Water Devils";
+                        break;
+                    case string t when t.Contains("Armoreds"):
+                        simp = "Armoreds";
+                        if (t.Contains("Fire Damage"))
+                            simp = "Armoreds with Fire Damage";
+                        else if (t.Contains("Poison Damage"))
+                            simp = "Armoreds with Poison Damage";
+                        break;
+                    case string t when t.Contains("Immolators"):
+                        simp = "Immolators";
+                        if (t.Contains("Choke"))
+                            simp = "Immolators with Choke";
+                        else if (t.Contains("Dusters"))
+                            simp = "Immolators with Dusters";
+                        break;
+                    case string t when t.Contains("Hellhounds"):
+                        simp = "Hellhounds";
+                        if (t.Contains("Fire Damage"))
+                            simp = "Hellhounds with Fire Damage";
+                        else if (t.Contains("Poison Damage"))
+                            simp = "Hellhounds with Poison Damage";
+                        break;
+                    case string t when t.Contains("Hives"):
+                        simp = "Hives";
+                        if (t.Contains("Fire Damage"))
+                            simp = "Hives with Fire Damage";
+                        else if (t.Contains("Throwing"))
+                            simp = "Hives with a Throwing Weapon";
+                        break;
+                    case string t when t.Contains("Destroy"):
+                        simp = "Dog Cages";
+                        break;
+                    case string t when t.Contains("Collect Clues"):
+                        simp = "Collect Clues";
+                        break;
+                    case string t when t.Contains("Banish Targets"):
+                        simp = "Banish Targets";
+                        break;
+                    case string t when t.Contains("Extract"):
+                        simp = "Extract with a Bounty";
+                        break;
+                    case string t when t.Contains("Trait Spurs"):
+                        simp = "Trait Spurs";
+                        break;
+                    case string t when t.Contains("Hunters bleed"):
+                        simp = "Bleed Hunters";
+                        break;
+                    case string t when t.Contains("Hunters on fire"):
+                        simp = "Burn Hunters";
+                        break;
+                    case string t when t.Contains("Poison enemy"):
+                        simp = "Poison Hunters";
+                        break;
+                    case string t when t.Contains("Melee Damage"):
+                        simp = "Melee Hunters";
+                        break;
+                    case string t when t.Contains("damage to enemy Hunters") && !t.Contains("using"):
+                        simp = "Damage Hunters";
+                        break;
+                    case string t when t.Contains("headshot") && t.Contains(':'):
+                        simp = "Headshot Hunters with " + task.Split(':')[1].Trim();
+                        break;
+                    case string t when t.Contains("Hunters using") && t.Contains(':'):
+                        simp = task.Split(':')[1].Trim() + " Damage";
+                        break;
+                    case string t when t.Contains("headshot"):
+                        simp = "Headshot Hunters";
+                        break;
+                    default:
+                        simp = task; // Default assignment
+                        break;
+                }
             }
 
             return simp;
