@@ -303,36 +303,47 @@ namespace TaskBoardServer
 
             if (task != null)
             {
-                if (task.Contains("Throwing"))
-                    need = "Throwing Weapon";
-                if (task.Contains("Poison Damage"))
-                    need = "Poison Damage";
-                if (task.Contains("Fire Damage"))
-                    need = "Fire Damage";
-                if (task.Contains("Dusters"))
-                    need = "Dusters";
-                if (task.Contains("Knuckle Knife"))
-                    need = "Dusters";
-
-                if (task.Contains("Hunters bleed"))
-                    need = "Bleed Hunters";
-                if (task.Contains("Hunters on fire"))
-                    need = "Burn Hunters";
-                if (task.Contains("Poison enemy"))
-                    need = "Poison Hunters";
-                if (task.Contains("Melee Damage"))
-                    need = "Melee Hunters";
-
-                if (task.Contains("Hunters using") && task.Contains(':'))
-                    need = task.Split(':')[1];
-                if (task.Contains("headshot") && task.Contains(':'))
-                    need = "Headshot with " + task.Split(':')[1].Trim();
-                else if (task.Contains("headshot"))
-                    need = "Headshots";
+                switch (task)
+                {
+                    case string t when t.Contains("Throwing"):
+                        need = "Throwing Weapon";
+                        break;
+                    case string t when t.Contains("Poison Damage"):
+                        need = "Poison Damage";
+                        break;
+                    case string t when t.Contains("Fire Damage"):
+                        need = "Fire Damage";
+                        break;
+                    case string t when t.Contains("Dusters") || t.Contains("Knuckle Knife"):
+                        need = "Dusters";
+                        break;
+                    case string t when t.Contains("Hunters bleed"):
+                        need = "Bleed Hunters";
+                        break;
+                    case string t when t.Contains("Hunters on fire"):
+                        need = "Burn Hunters";
+                        break;
+                    case string t when t.Contains("Poison enemy"):
+                        need = "Poison Hunters";
+                        break;
+                    case string t when t.Contains("Melee Damage"):
+                        need = "Melee Hunters";
+                        break;
+                    case string t when t.Contains("headshot") && t.Contains(':'):
+                        need = "Headshots with " + task.Split(':')[1].Trim();
+                        break;
+                    case string t when t.Contains("Hunters using") && t.Contains(':'):
+                        need = task.Split(':')[1].Trim();
+                        break;
+                    case string t when t.Contains("headshot"):
+                        need = "Headshots";
+                        break;
+                }
             }
 
             return need.Trim();
         }
+
 
         private void startBtn_Click(object sender, EventArgs e)
         {
