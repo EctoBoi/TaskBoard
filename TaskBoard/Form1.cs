@@ -97,6 +97,7 @@ namespace TaskBoard
 
         private async void KeepAliveLoop()
         {
+            await Task.Delay(9999);
             while (true)
             {
                 if (client != null && client.IsConnected)

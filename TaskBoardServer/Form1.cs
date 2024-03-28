@@ -283,7 +283,7 @@ namespace TaskBoardServer
                         simp = "Headshot Hunters with " + task.Split(':')[1].Trim();
                         break;
                     case string t when t.Contains("Hunters using") && t.Contains(':'):
-                        simp = task.Split(':')[1].Trim() + " Damage";
+                        simp = "Damage with " + task.Split(':')[1].Trim();
                         break;
                     case string t when t.Contains("headshot"):
                         simp = "Headshot Hunters";
