@@ -1,7 +1,6 @@
 using SuperSimpleTcp;
-using System.Linq;
 using System.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Text.RegularExpressions;
 
 namespace TaskBoardServer
 {
@@ -16,6 +15,9 @@ namespace TaskBoardServer
 
         private List<User> users = [];
         private List<User> oldUsers = [];
+
+        private List<string> reminderList = [];
+        private string taskBoard = "";
 
         private class User(string IpPort)
         {
@@ -61,14 +63,10 @@ namespace TaskBoardServer
             {
                 string dataString = Encoding.UTF8.GetString(e.Data);
 
-                if (dataString == "$keepAlive")
+                Match userDataMatch = UserDataRegex().Match(dataString);
+                if (userDataMatch.Success)
                 {
-                    users.Single(x => x.IpPort == e.IpPort).lastActive = DateTime.Now;
-                    server?.Send(e.IpPort, "$keepAlive");
-                }
-                else if (dataString.Contains("$user="))
-                {
-                    string username = dataString.Split('=')[1];
+                    string username = userDataMatch.Groups[1].Value;
 
                     User currentUser = users.Single(x => x.IpPort == e.IpPort);
                     currentUser.username = username;
@@ -84,16 +82,25 @@ namespace TaskBoardServer
                     UpdateUserList();
                     SendTaskBoard();
                 }
-                else if (dataString.Contains("$taskList="))
+
+                Match taskListDataMatch = taskListDataRegex().Match(dataString);
+                if (taskListDataMatch.Success)
                 {
-                    string[] strings = dataString.Split(Environment.NewLine);
+                    string[] strings = taskListDataMatch.Groups[1].Value.Split(Environment.NewLine);
                     User u = users.Single(x => x.IpPort == e.IpPort);
                     for (int i = 0; i < 8; i++)
                     {
-                        u.taskList[i] = strings[i + 1];
+                        u.taskList[i] = strings[i + 1].Trim();
                     }
                     u.lastListUpdate = DateTime.Now;
+                    UpdateTaskBoard();
                     SendTaskBoard();
+                }
+
+                if (keepAliveDataRegex().Match(dataString).Success)
+                {
+                    users.Single(x => x.IpPort == e.IpPort).lastActive = DateTime.Now;
+                    server?.Send(e.IpPort, "$keepAlive");
                 }
             });
         }
@@ -131,11 +138,21 @@ namespace TaskBoardServer
 
         private void SendTaskBoard()
         {
+            foreach (User u in users)
+            {
+                if (server != null)
+                {
+                    server.Send(u.IpPort, taskBoard);
+                }
+                else
+                    infoTxt.Text += $"SendTaskBoard Error{Environment.NewLine}";
+            }
+        }
+
+        private void UpdateTaskBoard()
+        {
             users = [.. users.OrderBy(o => o.username)];
             StringBuilder mainBoard = new();
-            StringBuilder teamNeeds = new();
-
-            teamNeeds.AppendLine("===Team Needs===");
 
             foreach (User u in users)
             {
@@ -154,51 +171,54 @@ namespace TaskBoardServer
                 else
                     minute = u.lastListUpdate.Minute.ToString();
                 mainBoard.AppendLine($"{u.username} @ {hour}:{minute}");
+                mainBoard.AppendLine("");
 
-                teamNeeds.AppendLine(u.username + ":");
-
-                bool needAdded = false;
+                reminderList = [];
                 for (int i = 0; i < 8; i++)
                 {
-                    if (i % 2 == 0)
+                    if (i % 2 == 0) //check task
                     {
                         mainBoard.Append(SimplifyTask(u.taskList[i]));
-                        string need = GetNeed(u.taskList[i]);
-                        if (need != "")
-                        {
-                            if (needAdded)
-                                teamNeeds.Append(" || ");
-                            teamNeeds.Append(GetNeed(u.taskList[i]));
-                            needAdded = true;
-                        }
                     }
-                    else
+                    else // check score
                     {
                         if (!string.IsNullOrEmpty(u.taskList[i]))
-                            mainBoard.AppendLine($" ({u.taskList[i]})");
+                        {
+                            Regex regex = ScoreRegex();
+
+                            if (regex.IsMatch(u.taskList[i]))
+                                mainBoard.AppendLine($" ({u.taskList[i]})");
+                            else
+                                mainBoard.AppendLine("");
+                        }
                         else
                             mainBoard.AppendLine("");
                     }
 
                 }
                 mainBoard.AppendLine("");
-                teamNeeds.AppendLine("");
             }
 
-            foreach (User u in users)
+            mainBoard.AppendLine("===Reminders===");
+            mainBoard.AppendLine("");
+
+            foreach(string reminder in reminderList)
             {
-                if (server != null)
-                {
-                    server.Send(u.IpPort, mainBoard.ToString() + teamNeeds.ToString());
-                    //infoTxt.Text += $"Task Board sent to {u.username}{Environment.NewLine}";
-                }
-                else
-                    infoTxt.Text += $"SendTaskBoard Error{Environment.NewLine}";
+                mainBoard.AppendLine(reminder);
             }
 
+            taskBoard = mainBoard.ToString();
         }
 
-        private static string SimplifyTask(string task)
+        private void AddReminder(string reminder)
+        {
+            if (!reminderList.Contains(reminder))
+            {
+                reminderList.Add(reminder);
+            }
+        }
+
+        private string SimplifyTask(string task)
         {
             string simp = "";
 
@@ -207,19 +227,19 @@ namespace TaskBoardServer
                 switch (task)
                 {
                     case string t when t.Contains("Grunts"):
-                        simp = "Grunts";
+                        simp = "Grunts"; AddReminder(simp);
                         break;
                     case string t when t.Contains("Lantern Grunt"):
-                        simp = "Lantern Grunts";
+                        simp = "Lantern Grunts"; AddReminder(simp);
                         break;
                     case string t when t.Contains("Pistol Grunt"):
-                        simp = "Pistol Grunts";
+                        simp = "Pistol Grunts"; AddReminder(simp);
                         break;
                     case string t when t.Contains("Meatheads"):
-                        simp = "Meatheads";
+                        simp = "Meatheads"; AddReminder(simp);
                         break;
                     case string t when t.Contains("Water Devils"):
-                        simp = "Water Devils";
+                        simp = "Water Devils"; AddReminder(simp);
                         break;
                     case string t when t.Contains("Armoreds"):
                         simp = "Armoreds";
@@ -227,6 +247,7 @@ namespace TaskBoardServer
                             simp = "Armoreds with Fire Damage";
                         else if (t.Contains("Poison Damage"))
                             simp = "Armoreds with Poison Damage";
+                        AddReminder(simp);
                         break;
                     case string t when t.Contains("Immolators"):
                         simp = "Immolators";
@@ -234,6 +255,7 @@ namespace TaskBoardServer
                             simp = "Immolators with Choke";
                         else if (t.Contains("Dusters"))
                             simp = "Immolators with Dusters";
+                        AddReminder(simp);
                         break;
                     case string t when t.Contains("Hellhounds"):
                         simp = "Hellhounds";
@@ -241,6 +263,7 @@ namespace TaskBoardServer
                             simp = "Hellhounds with Fire Damage";
                         else if (t.Contains("Poison Damage"))
                             simp = "Hellhounds with Poison Damage";
+                        AddReminder(simp);
                         break;
                     case string t when t.Contains("Hives"):
                         simp = "Hives";
@@ -248,9 +271,10 @@ namespace TaskBoardServer
                             simp = "Hives with Fire Damage";
                         else if (t.Contains("Throwing"))
                             simp = "Hives with a Throwing Weapon";
+                        AddReminder(simp);
                         break;
                     case string t when t.Contains("Destroy"):
-                        simp = "Dog Cages";
+                        simp = "Dog Cages"; AddReminder(simp);
                         break;
                     case string t when t.Contains("Collect Clues"):
                         simp = "Collect Clues";
@@ -289,61 +313,13 @@ namespace TaskBoardServer
                         simp = "Headshot Hunters";
                         break;
                     default:
-                        simp = task; // Default assignment
+                        simp = task;
                         break;
                 }
             }
 
             return simp;
         }
-
-        private static string GetNeed(string task)
-        {
-            string need = "";
-
-            if (task != null)
-            {
-                switch (task)
-                {
-                    case string t when t.Contains("Throwing"):
-                        need = "Throwing Weapon";
-                        break;
-                    case string t when t.Contains("Poison Damage"):
-                        need = "Poison Damage";
-                        break;
-                    case string t when t.Contains("Fire Damage"):
-                        need = "Fire Damage";
-                        break;
-                    case string t when t.Contains("Dusters") || t.Contains("Knuckle Knife"):
-                        need = "Dusters";
-                        break;
-                    case string t when t.Contains("Hunters bleed"):
-                        need = "Bleed Hunters";
-                        break;
-                    case string t when t.Contains("Hunters on fire"):
-                        need = "Burn Hunters";
-                        break;
-                    case string t when t.Contains("Poison enemy"):
-                        need = "Poison Hunters";
-                        break;
-                    case string t when t.Contains("Melee Damage"):
-                        need = "Melee Hunters";
-                        break;
-                    case string t when t.Contains("headshot") && t.Contains(':'):
-                        need = "Headshots with " + task.Split(':')[1].Trim();
-                        break;
-                    case string t when t.Contains("Hunters using") && t.Contains(':'):
-                        need = task.Split(':')[1].Trim();
-                        break;
-                    case string t when t.Contains("headshot"):
-                        need = "Headshots";
-                        break;
-                }
-            }
-
-            return need.Trim();
-        }
-
 
         private void startBtn_Click(object sender, EventArgs e)
         {
@@ -353,5 +329,14 @@ namespace TaskBoardServer
             RemoveInactiveUsersLoop();
             startBtn.Enabled = false;
         }
+
+        [GeneratedRegex(@"^[0-9][0-9]*/[1-9][0-9]*$")]
+        private static partial Regex ScoreRegex();
+        [GeneratedRegex(@"\$user=(.*?)(?:\$|$)")]
+        private static partial Regex UserDataRegex();
+        [GeneratedRegex(@"\$keepAlive")]
+        private static partial Regex keepAliveDataRegex();
+        [GeneratedRegex(@"\$taskList=(.*?)(?:\$|$)", RegexOptions.Singleline)]
+        private static partial Regex taskListDataRegex();
     }
 }

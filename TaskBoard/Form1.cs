@@ -98,13 +98,10 @@ namespace TaskBoard
         private async void KeepAliveLoop()
         {
             await Task.Delay(9999);
-            while (true)
+            while (client != null && client.IsConnected)
             {
-                if (client != null && client.IsConnected)
-                {
-                    client.Send("$keepAlive");
-                    await Task.Delay(59999);
-                }
+                client.Send("$keepAlive");
+                await Task.Delay(59999);
             }
         }
 
@@ -412,7 +409,7 @@ namespace TaskBoard
                         engine.SetVariable("tessedit_char_whitelist", "/0123456789");
                         tempbmp = OCRPreprocessor.PreprocessForOCR(tempbmp, 100);
                     }
-                        
+
                     using Tesseract.Page page = engine.Process(tempbmp, PageSegMode.SingleBlock);
                     //tempbmp.Save($@".\testimages\CapturePart{i}.png", System.Drawing.Imaging.ImageFormat.Png);
                     string[] strings = page.GetText().Trim().Split(null);
