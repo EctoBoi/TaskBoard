@@ -154,6 +154,8 @@ namespace TaskBoardServer
             users = [.. users.OrderBy(o => o.username)];
             StringBuilder mainBoard = new();
 
+            reminderList = [];
+
             foreach (User u in users)
             {
                 string hour;
@@ -172,8 +174,7 @@ namespace TaskBoardServer
                     minute = u.lastListUpdate.Minute.ToString();
                 mainBoard.AppendLine($"{u.username} @ {hour}:{minute}");
                 mainBoard.AppendLine("");
-
-                reminderList = [];
+                
                 for (int i = 0; i < 8; i++)
                 {
                     if (i % 2 == 0) //check task
