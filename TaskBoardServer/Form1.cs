@@ -109,22 +109,20 @@ namespace TaskBoardServer
         {
             while (true)
             {
+                List<User> usersToRemove = [];
                 foreach (User user in users)
                 {
-                    try
+                    if (DateTime.Now - user.lastActive > TimeSpan.FromMilliseconds(69999))
                     {
-                        if (DateTime.Now - user.lastActive > TimeSpan.FromMilliseconds(69999))
-                        {
-                            infoTxt.Text += $"{user.IpPort} removed for inactivity{Environment.NewLine}";
-                            oldUsers.Add(user);
-                            users.Remove(user);
-                            UpdateUserList();
-                        }
+                        usersToRemove.Add(user);
                     }
-                    catch (Exception e)
-                    {
-                        infoTxt.Text += $"{e.Message}{Environment.NewLine}";
-                    }
+                }
+                foreach (User user in usersToRemove)
+                {
+                    infoTxt.Text += $"{user.IpPort} removed for inactivity{Environment.NewLine}";
+                    oldUsers.Add(user);
+                    users.Remove(user);
+                    UpdateUserList();
                 }
                 await Task.Delay(59999);
             }
@@ -174,7 +172,7 @@ namespace TaskBoardServer
                     minute = u.lastListUpdate.Minute.ToString();
                 mainBoard.AppendLine($"{u.username} @ {hour}:{minute}");
                 mainBoard.AppendLine("");
-                
+
                 for (int i = 0; i < 8; i++)
                 {
                     if (i % 2 == 0) //check task
@@ -203,7 +201,7 @@ namespace TaskBoardServer
             mainBoard.AppendLine("===Reminders===");
             mainBoard.AppendLine("");
 
-            foreach(string reminder in reminderList)
+            foreach (string reminder in reminderList)
             {
                 mainBoard.AppendLine(reminder);
             }
