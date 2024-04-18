@@ -45,8 +45,9 @@ namespace TaskBoard
             // 
             // infoLbl
             // 
-            infoLbl.BackColor = SystemColors.Window;
+            infoLbl.BackColor = Color.FromArgb(43, 45, 49);
             infoLbl.BorderStyle = BorderStyle.FixedSingle;
+            infoLbl.ForeColor = Color.FromArgb(215, 215, 220);
             infoLbl.Location = new Point(12, 50);
             infoLbl.Name = "infoLbl";
             infoLbl.Size = new Size(776, 589);
@@ -54,13 +55,15 @@ namespace TaskBoard
             // 
             // postListBtn
             // 
+            postListBtn.BackColor = Color.White;
             postListBtn.Enabled = false;
+            postListBtn.ForeColor = Color.Black;
             postListBtn.Location = new Point(12, 651);
             postListBtn.Name = "postListBtn";
             postListBtn.Size = new Size(103, 23);
             postListBtn.TabIndex = 2;
             postListBtn.Text = "Post List (Home)";
-            postListBtn.UseVisualStyleBackColor = true;
+            postListBtn.UseVisualStyleBackColor = false;
             postListBtn.Click += postListBtn_Click;
             // 
             // UIScaleLbl
@@ -74,6 +77,8 @@ namespace TaskBoard
             // 
             // IPTxt
             // 
+            IPTxt.BackColor = Color.FromArgb(43, 45, 49);
+            IPTxt.ForeColor = SystemColors.MenuBar;
             IPTxt.Location = new Point(60, 12);
             IPTxt.Name = "IPTxt";
             IPTxt.Size = new Size(172, 23);
@@ -91,12 +96,14 @@ namespace TaskBoard
             // 
             // connectBtn
             // 
+            connectBtn.BackColor = Color.White;
+            connectBtn.ForeColor = Color.Black;
             connectBtn.Location = new Point(452, 12);
             connectBtn.Name = "connectBtn";
             connectBtn.Size = new Size(75, 23);
             connectBtn.TabIndex = 6;
             connectBtn.Text = "Connect";
-            connectBtn.UseVisualStyleBackColor = true;
+            connectBtn.UseVisualStyleBackColor = false;
             connectBtn.Click += connectBtn_Click;
             // 
             // statusLbl
@@ -119,6 +126,8 @@ namespace TaskBoard
             // 
             // userTxt
             // 
+            userTxt.BackColor = Color.FromArgb(43, 45, 49);
+            userTxt.ForeColor = SystemColors.MenuBar;
             userTxt.Location = new Point(277, 12);
             userTxt.Name = "userTxt";
             userTxt.Size = new Size(169, 23);
@@ -126,19 +135,22 @@ namespace TaskBoard
             // 
             // clearBtn
             // 
+            clearBtn.BackColor = Color.White;
             clearBtn.Enabled = false;
+            clearBtn.ForeColor = Color.Black;
             clearBtn.Location = new Point(121, 651);
             clearBtn.Name = "clearBtn";
             clearBtn.Size = new Size(57, 23);
             clearBtn.TabIndex = 10;
             clearBtn.Text = "Clear";
-            clearBtn.UseVisualStyleBackColor = true;
+            clearBtn.UseVisualStyleBackColor = false;
             clearBtn.Click += clearBtn_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(49, 51, 56);
             ClientSize = new Size(800, 686);
             Controls.Add(clearBtn);
             Controls.Add(label3);
@@ -150,6 +162,7 @@ namespace TaskBoard
             Controls.Add(UIScaleLbl);
             Controls.Add(postListBtn);
             Controls.Add(infoLbl);
+            ForeColor = Color.FromArgb(215, 215, 220);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
